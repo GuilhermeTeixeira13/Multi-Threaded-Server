@@ -207,6 +207,7 @@ void serve_dynamic (int fd, char *filename, char *cgiargs)
 {
   char buf[MAXLINE], *emptylist[] = { NULL };
 
+  // Não ALTERAR!
   int pipefd[2];
 
   /*Paul Crocker
@@ -228,7 +229,7 @@ void serve_dynamic (int fd, char *filename, char *cgiargs)
 
   int contentLength=read(pipefd[0],content,1024);
   Wait (NULL);			/* Parent waits for and reaps child *///line:netp:servedynamic:wait
-
+  // Não ALTERAR!
 
   /* Generate the HTTP response */
   sprintf (buf, "HTTP/1.0 200 OK\r\n");	//line:netp:servestatic:beginserve
