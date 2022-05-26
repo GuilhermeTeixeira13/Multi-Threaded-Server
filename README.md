@@ -41,34 +41,4 @@ like this: pthread cond t c;, which declares c as a condition variable
 operations associated with it: wait() and signal(). The wait() call
 is executed when a thread wishes to put itself to sleep; the signal() call.
 
-int done = 0;
-2 pthread_mutex_t m = PTHREAD_MUTEX_INITIALIZER;
-3 pthread_cond_t c = PTHREAD_COND_INITIALIZER;
-4
-5 void thr_exit() {
-6 Pthread_mutex_lock(&m);
-7 done = 1;
-8 Pthread_cond_signal(&c);
-9 Pthread_mutex_unlock(&m);
-10 }
-11
-12 void *child(void *arg) {
-13 printf("child\n");
-14 thr_exit();
-15 return NULL;
-16 }
-17
-18 void thr_join() {
-19 Pthread_mutex_lock(&m);
-20 while (done == 0)
-21 Pthread_cond_wait(&c, &m);
-22 Pthread_mutex_unlock(&m);
-23 }
-24
-25 int main(int argc, char *argv[]) {
-26 printf("parent: begin\n");
-27 pthread_t p;
-28 Pthread_create(&p, NULL, child, NULL);
-29 thr_join();
-30 printf("parent: end\n");
-31 return 0;
+https://pages.cs.wisc.edu/~remzi/OSTEP/threads-cv.pdf
