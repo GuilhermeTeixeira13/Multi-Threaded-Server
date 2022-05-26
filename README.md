@@ -34,7 +34,7 @@ The worker thread then waits for another http request.<br>
 The master thread must block and wait if the buffer is full.<br>
 A worker thread must wait if the buffer is empty.<br>
 
-##### Side Notes - Conditional Variables
+#### Side Notes - Conditional Variables
 To declare such a condition variable, one simply writes something
 like this: pthread cond t c;, which declares c as a condition variable
 (note: proper initialization is also required). A condition variable has two
