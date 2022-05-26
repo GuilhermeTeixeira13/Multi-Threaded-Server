@@ -7,8 +7,12 @@
  Modified by Paul
 
  */
+#include "myqueue.h"
 #include "csapp.h"
+#include <stdbool.h>
 
+void enqueue(int *client_socket);
+int *dequeue();
 void *doit(void *p_fd);
 void read_requesthdrs(rio_t *rp);
 int parse_uri(char *uri, char *filename, char *cgiargs);
@@ -16,36 +20,97 @@ void serve_static(int fd, char *filename, int filesize);
 void get_filetype(char *filename, char *filetype);
 void serve_dynamic(int fd, char *filename, char *cgiargs);
 void clienterror(int fd, char *cause, char *errnum, char *shortmsg, char *longmsg);
+void *thread_function(void *args);
 
 int numeroRequestStat = 0;
+pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+node_t *head = NULL;
+node_t *tail = NULL;
 
 int main(int argc, char **argv)
 {
-  int listenfd, connfd, port;
+  int listenfd, connfd, port, ThreadPoolSIZE;
   unsigned int clientlen; // change to unsigned as sizeof returns unsigned
   struct sockaddr_in clientaddr;
 
   /* Check command line args */
-  if (argc != 2)
+  if (argc != 3)
   {
-    fprintf(stderr, "usage: %s <port>\n", argv[0]);
+    fprintf(stderr, "usage: %s <port> <threads>\n", argv[0]);
     exit(1);
   }
   port = atoi(argv[1]);
+  ThreadPoolSIZE = atoi(argv[2]);
 
-  fprintf(stderr, "Server : %s Running on  <%d>\n", argv[0], port);
+  fprintf(stderr, "Server : %s Running on  <%d> <%d>\n", argv[0], port, ThreadPoolSIZE);
 
   listenfd = Open_listenfd(port);
+
+  pthread_t thread_pool[ThreadPoolSIZE];
+  for (int i = 0; i < ThreadPoolSIZE; i++)
+    pthread_create(&thread_pool[i], NULL, thread_function, NULL);
+
   while (1)
   {
     clientlen = sizeof(clientaddr);
     connfd = Accept(listenfd, (SA *)&clientaddr, &clientlen); // line:netp:tiny:accept
+
     // doit (connfd);		//line:netp:tiny:doit
-    pthread_t t;
+    /*pthread_t t;
     int *pclient = malloc(sizeof(int));
     *pclient = connfd;
-    pthread_create(&t, NULL, doit, pclient);
+    pthread_create(&t, NULL, doit, pclient);*/
     // Close(connfd); // line:netp:tiny:close
+
+    int *pclient = malloc(sizeof(int));
+    *pclient = connfd;
+    pthread_mutex_lock(&mutex);
+    enqueue(pclient);
+    pthread_mutex_unlock(&mutex);
+  }
+}
+
+void enqueue(int *client_socket)
+{
+  node_t *newnode = malloc(sizeof(node_t));
+  newnode->client_socket = client_socket;
+  newnode->next = NULL;
+  if (tail == NULL)
+    head = newnode;
+  else
+    tail->next = newnode;
+  tail = newnode;
+}
+
+int *dequeue()
+{
+  if (head == NULL)
+    return NULL;
+  else
+  {
+    int *result = head->client_socket;
+    node_t *temp = head;
+    head = head->next;
+    if (head == NULL)
+    {
+      tail = NULL;
+    }
+    free(temp);
+    return result;
+  }
+}
+
+void *thread_function(void *args)
+{
+  while (true)
+  {
+    pthread_mutex_lock(&mutex);
+    int *pclient = dequeue();
+    pthread_mutex_unlock(&mutex);
+    if (pclient != NULL)
+    {
+      doit(pclient);
+    }
   }
 }
 
