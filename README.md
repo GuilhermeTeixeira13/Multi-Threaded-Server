@@ -42,3 +42,4 @@ operations associated with it: wait() and signal(). The wait() call
 is executed when a thread wishes to put itself to sleep; the signal() call.
 
 https://pages.cs.wisc.edu/~remzi/OSTEP/threads-cv.pdf
+https://www.youtube.com/watch?v=0sVGnxg6Z3k
