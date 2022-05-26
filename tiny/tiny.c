@@ -24,6 +24,7 @@ void *thread_function(void *args);
 
 int numeroRequestStat = 0;
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t condition_var = PTHREAD_COND_INITIALIZER;
 node_t *head = NULL;
 node_t *tail = NULL;
 
@@ -66,6 +67,7 @@ int main(int argc, char **argv)
     *pclient = connfd;
     pthread_mutex_lock(&mutex);
     enqueue(pclient);
+    pthread_cond_signal(&condition_var);
     pthread_mutex_unlock(&mutex);
   }
 }
@@ -104,8 +106,14 @@ void *thread_function(void *args)
 {
   while (true)
   {
+    int *pclient;
     pthread_mutex_lock(&mutex);
-    int *pclient = dequeue();
+
+    if ((pclient = dequeue()) == NULL) // Se não há mais ninguém na fila, então espera
+    {
+      pthread_cond_wait(&condition_var, &mutex);
+      pclient = dequeue();
+    }
     pthread_mutex_unlock(&mutex);
     if (pclient != NULL)
     {
