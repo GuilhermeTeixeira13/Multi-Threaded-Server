@@ -1,6 +1,6 @@
 #!/bin/bash
 
-for N in {1..150}
+for N in {1..3}
 do
   if [[ $N -gt 40 ]]
   then

@@ -27,6 +27,9 @@ pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t condition_var = PTHREAD_COND_INITIALIZER;
 node_t *head = NULL;
 node_t *tail = NULL;
+int queueCurrentSize = 0;
+int buffersSize = 0;
+long Stat_thread_id = 0;
 
 int main(int argc, char **argv)
 {
@@ -35,21 +38,22 @@ int main(int argc, char **argv)
   struct sockaddr_in clientaddr;
 
   /* Check command line args */
-  if (argc != 3)
+  if (argc != 4)
   {
-    fprintf(stderr, "usage: %s <port> <threads>\n", argv[0]);
+    fprintf(stderr, "usage: %s <port> <threads> <buffers>\n", argv[0]);
     exit(1);
   }
   port = atoi(argv[1]);
   ThreadPoolSIZE = atoi(argv[2]);
+  buffersSize = atoi(argv[3]);
 
-  fprintf(stderr, "Server : %s Running on  <%d> <%d>\n", argv[0], port, ThreadPoolSIZE);
+  fprintf(stderr, "Server : %s Running on  <%d> <%d> <%d>\n", argv[0], port, ThreadPoolSIZE, buffersSize);
 
   listenfd = Open_listenfd(port);
 
   pthread_t thread_pool[ThreadPoolSIZE];
-  for (int i = 0; i < ThreadPoolSIZE; i++)
-    pthread_create(&thread_pool[i], NULL, thread_function, NULL);
+  for (long i = 0; i < ThreadPoolSIZE; i++)
+    pthread_create(&thread_pool[i], NULL, thread_function, (void *)i);
 
   while (1)
   {
@@ -66,7 +70,11 @@ int main(int argc, char **argv)
     int *pclient = malloc(sizeof(int));
     *pclient = connfd;
     pthread_mutex_lock(&mutex);
-    enqueue(pclient);
+    if (queueCurrentSize <= buffersSize)
+    {
+      enqueue(pclient);
+      queueCurrentSize++;
+    }
     pthread_cond_signal(&condition_var);
     pthread_mutex_unlock(&mutex);
   }
@@ -104,6 +112,7 @@ int *dequeue()
 
 void *thread_function(void *args)
 {
+  Stat_thread_id = (long)args;
   while (true)
   {
     int *pclient;
@@ -113,6 +122,7 @@ void *thread_function(void *args)
     {
       pthread_cond_wait(&condition_var, &mutex);
       pclient = dequeue();
+      queueCurrentSize--;
     }
     pthread_mutex_unlock(&mutex);
     if (pclient != NULL)
@@ -255,6 +265,7 @@ void serve_static(int fd, char *filename, int filesize)
   sprintf(buf, "%sRequestStat: %d\r\n", buf, numeroRequestStat++);
   sprintf(buf, "%sContent-length: %d\r\n", buf, filesize);
   sprintf(buf, "%sContent-type: %s\r\n\r\n", buf, filetype);
+  // sprintf(buf, "%sTarefa realizada pelo thread -> %ld\r\n\r\n", buf, Stat_thread_id);
   Rio_writen(fd, buf, strlen(buf)); // line:netp:servestatic:endserve
 
   /* Send response body to client */
@@ -321,6 +332,7 @@ void serve_dynamic(int fd, char *filename, char *cgiargs)
   sprintf(buf, "%sRequestStat: %d\r\n", buf, numeroRequestStat++);
   sprintf(buf, "%sContent-length: %d\r\n", buf, contentLength);
   sprintf(buf, "%sContent-type: text/html\r\n\r\n", buf);
+  // sprintf(buf, "%sTarefa realizada pelo thread -> %ld\r\n\r\n", buf, Stat_thread_id);
   Rio_writen(fd, buf, strlen(buf)); // line:netp:servestatic:endserve
 
   Rio_writen(fd, content, contentLength);
@@ -353,6 +365,7 @@ void clienterror(int fd, char *cause, char *errnum, char *shortmsg, char *longms
 
   sprintf(buf, "%sServer: Tiny Web Server\r\n", buf);
   sprintf(buf, "%sRequestStat: %d\r\n", buf, numeroRequestStat++);
+  // sprintf(buf, "%sTarefa realizada pelo thread -> %ld\r\n\r\n", buf, Stat_thread_id);
   Rio_writen(fd, buf, strlen(buf));
 
   sprintf(buf, "Content-length: %d\r\n\r\n", (int)strlen(body));
