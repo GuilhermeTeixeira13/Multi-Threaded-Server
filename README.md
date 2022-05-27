@@ -22,7 +22,7 @@ Placing the descriptor for this connection into a fixed-size buffer.<br>
 Number of elements in the buffer is also specified on the command line.<br>
 this thread should place the connection descriptor into a fixed-size buffer and return to accepting more connections.<br>
 You should investigate how to create and manage posix threads with pthread_create and pthread_detach.<br>
-#### Worker thread - Static and Dynamic requests. 
+#### Worker thread - Static and Dynamic requests. ✔️
 A worker thread wakes when there is an http request in the queue; when there are multiple http
 requests available, which request is handled depends upon the scheduling policy, described
 below.<br>
@@ -30,11 +30,11 @@ Once the worker thread wakes, it performs the read on the network descriptor, ob
 specified content (by either reading the static file or executing the CGI process), and then returns
 the content to the client by writing to the descriptor.<br>
 The worker thread then waits for another http request.<br>
-#### Master thread and the worker threads --> Producer-Consumer Relationship
+#### Master thread and the worker threads --> Producer-Consumer Relationship ✔️
 The master thread must block and wait if the buffer is full.<br>
 A worker thread must wait if the buffer is empty.<br>
 
-#### Side Notes - Conditional Variables
+#### Side Notes - Conditional Variables ✔️
 To declare such a condition variable, one simply writes something
 like this: pthread cond t c;, which declares c as a condition variable
 (note: proper initialization is also required). A condition variable has two
