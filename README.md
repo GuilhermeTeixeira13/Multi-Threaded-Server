@@ -43,3 +43,8 @@ is executed when a thread wishes to put itself to sleep; the signal() call.
 
 https://pages.cs.wisc.edu/~remzi/OSTEP/threads-cv.pdf
 https://www.youtube.com/watch?v=0sVGnxg6Z3k
+
+#### Videos de Ajuda 
+https://www.youtube.com/watch?v=Pg_4Jz8ZIH4&list=RDCMUCwd5VFu4KoJNjkWJZMFJGHQ&index=4
+https://www.youtube.com/watch?v=FMNnusHqjpw&list=RDCMUCwd5VFu4KoJNjkWJZMFJGHQ&start_radio=1&t=5s
+https://www.youtube.com/watch?v=P6Z5K8zmEmc&list=RDCMUCwd5VFu4KoJNjkWJZMFJGHQ&index=3
