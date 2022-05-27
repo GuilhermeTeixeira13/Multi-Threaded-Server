@@ -38,16 +38,16 @@ int main(int argc, char **argv)
   struct sockaddr_in clientaddr;
 
   /* Check command line args */
-  if (argc != 4)
+  if (argc != 5)
   {
-    fprintf(stderr, "usage: %s <port> <threads> <buffers>\n", argv[0]);
+    fprintf(stderr, "usage: %s <port> <threads> <buffers> <scheduling policy>\n", argv[0]);
     exit(1);
   }
   port = atoi(argv[1]);
   ThreadPoolSIZE = atoi(argv[2]);
   buffersSize = atoi(argv[3]);
 
-  fprintf(stderr, "Server : %s Running on  <%d> <%d> <%d>\n", argv[0], port, ThreadPoolSIZE, buffersSize);
+  fprintf(stderr, "Server : %s Running on  <%d> <%d> <%d> <%s>\n", argv[0], port, ThreadPoolSIZE, buffersSize, argv[4]);
 
   listenfd = Open_listenfd(port);
 
@@ -66,19 +66,22 @@ int main(int argc, char **argv)
     *pclient = connfd;
     pthread_create(&t, NULL, doit, pclient);*/
     // Close(connfd); // line:netp:tiny:close
-
-    int *pclient = malloc(sizeof(int));
-    *pclient = connfd;
-    pthread_mutex_lock(&mutex);
-    if (queueCurrentSize <= buffersSize)
+    if (strcmp("ANY", argv[4]) == 0 || strcmp("FIFO", argv[4]) == 0)
     {
-      enqueue(pclient);
-      queueCurrentSize++;
+      int *pclient = malloc(sizeof(int));
+      *pclient = connfd;
+      pthread_mutex_lock(&mutex);
+      if (queueCurrentSize <= buffersSize)
+      {
+        enqueue(pclient);
+        queueCurrentSize++;
+      }
+      pthread_cond_signal(&condition_var);
+      pthread_mutex_unlock(&mutex);
     }
-    pthread_cond_signal(&condition_var);
-    pthread_mutex_unlock(&mutex);
   }
 }
+
 
 void enqueue(int *client_socket)
 {
