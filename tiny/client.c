@@ -29,6 +29,7 @@ int main(int argc, char **argv)
     char request[MAX_REQUEST_LEN];
     char request_template[] = "GET %s HTTP/1.1\r\nHost: %s\r\n\r\n";
     struct protoent *protoent;
+    int 
 
     char *hostname = "localhost";
     unsigned short server_port = 8080; // default port
@@ -44,21 +45,50 @@ int main(int argc, char **argv)
     struct hostent *hostent;
     struct sockaddr_in sockaddr_in;
 
+
+    int numthreads;
+    char* schedAlg;
+
+    /* Check command line args */
+    if (argc != 6)
+    {
+        fprintf(stderr, "usage: %s <host> <port> <threads> <schedalg> <filename1> <filename2>\n", argv[0]);
+        exit(1);
+    }
     if (argc > 1)
         hostname = argv[1];
     if (argc > 2)
         server_port = strtoul(argv[2], NULL, 10);
     if (argc > 3)
-        file = argv[3];
+        numthreads = atoi(argv[3]);
+    if (argc > 4)
+        /* getting scheduling policy*/
+        schedAlg = argv[4];
+    if (argc > 5)
+        /* getting scheduling policy*/
+        file = argv[5];
     else
         file = fileindex; // ou escolher outra filedynamic filestatic
 
+
+            
+    int policy = -1;
     // construção do pedido de http
     request_len = snprintf(request, MAX_REQUEST_LEN, request_template, file, hostname);
     if (request_len >= MAX_REQUEST_LEN)
     {
         fprintf(stderr, "request length large: %d\n", request_len);
         exit(EXIT_FAILURE);
+    }
+
+    if  (strcmp(schedAlg,"CONCUR") == 0) 
+            policy = CONCUR;//FIFO is any policy, after all
+    else if
+            (strcmp(schedAlg,"FIFO") == 0) 
+            policy = FIFO;
+    else{
+        printf("Error: \"%s\" is Invalid scheduling policy, try CONCUR or FIFO\n",schedAlg);
+        return 1;
     }
 
     /* Build the socket. */
