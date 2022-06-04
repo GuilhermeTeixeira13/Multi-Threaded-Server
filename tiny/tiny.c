@@ -21,6 +21,7 @@ void get_filetype(char *filename, char *filetype);
 void serve_dynamic(int fd, char *filename, char *cgiargs);
 void clienterror(int fd, char *cause, char *errnum, char *shortmsg, char *longmsg);
 void *thread_function(void *args);
+int getprioritypolity()
 
 int numeroRequestStat = 0;
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -46,8 +47,9 @@ int main(int argc, char **argv)
   port = atoi(argv[1]);
   ThreadPoolSIZE = atoi(argv[2]);
   buffersSize = atoi(argv[3]);
+  schedalg=atoi(argv[4]);
 
-  fprintf(stderr, "Server : %s Running on  <%d> <%d> <%d>\n", argv[0], port, ThreadPoolSIZE, buffersSize);
+  fprintf(stderr, "Server : %s Running on  <%d> <%d> <%d> <%s>\n", argv[0], port, ThreadPoolSIZE, buffersSize,schedalg);
 
   listenfd = Open_listenfd(port);
 
@@ -72,12 +74,33 @@ int main(int argc, char **argv)
     pthread_mutex_lock(&mutex);
     if (queueCurrentSize <= buffersSize)
     {
-      enqueue(pclient);
+      enqueue(pclient,priority);
       queueCurrentSize++;
     }
     pthread_cond_signal(&condition_var);
     pthread_mutex_unlock(&mutex);
   }
+}
+int getprioritypolity(){
+  is_static = parse_uri(uri, filename, cgiargs);
+  if(!strcmp(schedAlg,"FIFO")){
+    return 1;
+  }
+  if(!strcmp(schedAlg,"HPSC")){
+    if(is_static){
+      return 1;
+    }else{
+    return 2;
+    }
+  }
+  if(!strcmp(schedAlg,"HPSC")){
+    if(is_static){
+      return 2;
+    }else{
+    return 1;
+    }
+  }
+
 }
 
 void enqueue(int *client_socket)
@@ -85,11 +108,26 @@ void enqueue(int *client_socket)
   node_t *newnode = malloc(sizeof(node_t));
   newnode->client_socket = client_socket;
   newnode->next = NULL;
+  newnode->priority=getprioritypolity();
   if (tail == NULL)
     head = newnode;
+    tail=newnode;
   else
     tail->next = newnode;
-  tail = newnode;
+    tail = newnode;
+    node_t temp=head;
+    if(temp->priority>newnode->priority){
+      head=newnode;
+      newnode->next=temp;
+      return;
+    }
+    while(temp->head != NULL&&temp->next->priority<newnode->priority){
+      temp=temp->next;
+    }
+    if(temp->next!=NULL){
+      newnode->next=temp->next;
+    }
+    temp->next=newnode;
 }
 
 int *dequeue()

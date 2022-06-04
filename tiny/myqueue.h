@@ -4,6 +4,7 @@
 struct node {
   struct node* next;
   int *client_socket;
+  int priority;
 };
 typedef struct node node_t;
 
