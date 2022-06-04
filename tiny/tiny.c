@@ -11,8 +11,11 @@
 #include "csapp.h"
 #include <stdbool.h>
 
-void enqueue(int *client_socket);
-int *dequeue();
+Queue initQueue();
+int isEmpty(Queue q);
+void enqueue(Queue q, int *num);
+void pEnqueue(Queue q, int *num, int prty);
+int *dequeue(Queue q);
 void *doit(void *p_fd);
 void read_requesthdrs(rio_t *rp);
 int parse_uri(char *uri, char *filename, char *cgiargs);
@@ -21,15 +24,17 @@ void get_filetype(char *filename, char *filetype);
 void serve_dynamic(int fd, char *filename, char *cgiargs);
 void clienterror(int fd, char *cause, char *errnum, char *shortmsg, char *longmsg);
 void *thread_function(void *args);
+int requestType(int fd);
 
 int numeroRequestStat = 0;
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t condition_var = PTHREAD_COND_INITIALIZER;
-node_t *head = NULL;
-node_t *tail = NULL;
 int queueCurrentSize = 0;
 int buffersSize = 0;
 long Stat_thread_id = 0;
+const int MAX_PRIORITY = 999;
+
+Queue q;
 
 int main(int argc, char **argv)
 {
@@ -37,17 +42,19 @@ int main(int argc, char **argv)
   unsigned int clientlen; // change to unsigned as sizeof returns unsigned
   struct sockaddr_in clientaddr;
 
+  q = initQueue();
+
   /* Check command line args */
-  if (argc != 4)
+  if (argc != 5)
   {
-    fprintf(stderr, "usage: %s <port> <threads> <buffers>\n", argv[0]);
+    fprintf(stderr, "usage: %s <port> <threads> <buffers> <SP>\n", argv[0]);
     exit(1);
   }
   port = atoi(argv[1]);
   ThreadPoolSIZE = atoi(argv[2]);
   buffersSize = atoi(argv[3]);
 
-  fprintf(stderr, "Server : %s Running on  <%d> <%d> <%d>\n", argv[0], port, ThreadPoolSIZE, buffersSize);
+  fprintf(stderr, "Server : %s Running on  <%d> <%d> <%d> <%s>\n", argv[0], port, ThreadPoolSIZE, buffersSize, argv[4]);
 
   listenfd = Open_listenfd(port);
 
@@ -60,53 +67,35 @@ int main(int argc, char **argv)
     clientlen = sizeof(clientaddr);
     connfd = Accept(listenfd, (SA *)&clientaddr, &clientlen); // line:netp:tiny:accept
 
-    // doit (connfd);		//line:netp:tiny:doit
-    /*pthread_t t;
     int *pclient = malloc(sizeof(int));
     *pclient = connfd;
-    pthread_create(&t, NULL, doit, pclient);*/
-    // Close(connfd); // line:netp:tiny:close
-
-    int *pclient = malloc(sizeof(int));
-    *pclient = connfd;
+    int tipoFicheiro = requestType(connfd);
+    printf("pclient->%d", *pclient);
     pthread_mutex_lock(&mutex);
     if (queueCurrentSize <= buffersSize)
     {
-      enqueue(pclient);
+      if (strcmp("ANY", argv[4]) == 0 || strcmp("FIFO", argv[4]) == 0)
+      {
+        enqueue(q, pclient);
+      }
+      else if (strcmp("HPSC", argv[4]) == 0)
+      {
+        if (tipoFicheiro == 1) // É estático
+          pEnqueue(q, pclient, 1);
+        else
+          pEnqueue(q, pclient, 2);
+      }
+      else if (strcmp("HPDC", argv[4]) == 0)
+      {
+        if (tipoFicheiro == 0) // É dinâmico
+          pEnqueue(q, pclient, 1);
+        else
+          pEnqueue(q, pclient, 2);
+      }
       queueCurrentSize++;
     }
     pthread_cond_signal(&condition_var);
     pthread_mutex_unlock(&mutex);
-  }
-}
-
-void enqueue(int *client_socket)
-{
-  node_t *newnode = malloc(sizeof(node_t));
-  newnode->client_socket = client_socket;
-  newnode->next = NULL;
-  if (tail == NULL)
-    head = newnode;
-  else
-    tail->next = newnode;
-  tail = newnode;
-}
-
-int *dequeue()
-{
-  if (head == NULL)
-    return NULL;
-  else
-  {
-    int *result = head->client_socket;
-    node_t *temp = head;
-    head = head->next;
-    if (head == NULL)
-    {
-      tail = NULL;
-    }
-    free(temp);
-    return result;
   }
 }
 
@@ -118,10 +107,10 @@ void *thread_function(void *args)
     int *pclient;
     pthread_mutex_lock(&mutex);
 
-    if ((pclient = dequeue()) == NULL) // Se não há mais ninguém na fila, então espera
+    if ((pclient = dequeue(q)) == NULL) // Se não há mais ninguém na fila, então espera
     {
       pthread_cond_wait(&condition_var, &mutex);
-      pclient = dequeue();
+      pclient = dequeue(q);
       queueCurrentSize--;
     }
     pthread_mutex_unlock(&mutex);
@@ -130,6 +119,36 @@ void *thread_function(void *args)
       doit(pclient);
     }
   }
+}
+
+int requestType(int fd)
+{
+  printf("O fd em requestType é -> %d", fd);
+  // int fd = *((int *)p_fd);
+  //  free(p_fd);
+  int is_static;
+  char buf[MAXLINE], method[MAXLINE], uri[MAXLINE], version[MAXLINE];
+  char filename[MAXLINE], cgiargs[MAXLINE];
+  rio_t rio;
+
+  /* Read request line and headers */
+  Rio_readinitb(&rio, fd);
+  Rio_readlineb(&rio, buf, MAXLINE);             // line:netp:doit:readrequest
+  sscanf(buf, "%s %s %s", method, uri, version); // line:netp:doit:parserequest
+  if (strcasecmp(method, "GET"))
+  { // line:netp:doit:beginrequesterr
+    clienterror(fd, method, "501", "Not Implemented", "Tiny does not implement this method");
+  }                       // line:netp:doit:endrequesterr
+  read_requesthdrs(&rio); // line:netp:doit:readrequesthdrs
+
+  /* Parse URI from GET request */
+  is_static = parse_uri(uri, filename, cgiargs); // line:netp:doit:staticcheck
+
+  printf("fechando(%d)", fd);
+  Close(fd);
+
+  // return 0 if dynamic content, 1 if static
+  return is_static;
 }
 
 /* $end tinymain */
@@ -141,7 +160,7 @@ void *thread_function(void *args)
 void *doit(void *p_fd)
 {
   int fd = *((int *)p_fd);
-  // printf("fd é --> %d", fd);
+  printf("O fd em doit é -> %d", fd);
   free(p_fd);
   int is_static;
   struct stat sbuf;
@@ -187,7 +206,8 @@ void *doit(void *p_fd)
     serve_dynamic(fd, filename, cgiargs); // line:netp:doit:servedynamic
   }
 
-  Close(fd);
+  // printf("fechando(%d)", fd);
+  // Close(fd);
 
   return NULL;
 }
@@ -377,3 +397,85 @@ void clienterror(int fd, char *cause, char *errnum, char *shortmsg, char *longms
 }
 
 /* $end clienterror */
+
+Queue initQueue()
+{
+  Queue newQueue = malloc(sizeof(Queuetype));
+  newQueue->top = NULL;
+  newQueue->tail = NULL;
+  return newQueue;
+}
+
+int isEmpty(Queue q)
+{
+  return q->top == NULL;
+}
+
+void enqueue(Queue q, int *num)
+{
+  QnodePtr newNode = malloc(sizeof(Qnode));
+  newNode->client_socket = num;
+  newNode->next = NULL;
+  newNode->prty = MAX_PRIORITY;
+
+  if (isEmpty(q))
+  {
+    q->top = newNode;
+    q->tail = newNode;
+  }
+  else
+  {
+    q->tail->next = newNode;
+    q->tail = newNode;
+  }
+}
+
+void pEnqueue(Queue q, int *num, int prty)
+{
+
+  QnodePtr newNode = malloc(sizeof(Qnode));
+  newNode->client_socket = num;
+  newNode->next = NULL;
+  newNode->prty = prty;
+
+  if (isEmpty(q))
+  {
+    q->top = newNode;
+    q->tail = newNode;
+  }
+  else
+  {
+    q->tail->next = newNode;
+    q->tail = newNode;
+
+    QnodePtr temp = q->top;
+    if (temp->prty > newNode->prty)
+    {
+      q->top = newNode;
+      newNode->next = temp;
+      return;
+    }
+
+    while (temp->next != NULL && temp->next->prty < newNode->prty)
+    {
+      temp = temp->next;
+    }
+
+    if (temp->next != NULL)
+    {
+      newNode->next = temp->next;
+    }
+    temp->next = newNode;
+  }
+}
+
+int *dequeue(Queue q)
+{
+  if (isEmpty(q))
+    return NULL;
+  QnodePtr temp = q->top;
+  int *tempNum = q->top->client_socket;
+  q->top = q->top->next;
+  free(temp);
+  return tempNum;
+}

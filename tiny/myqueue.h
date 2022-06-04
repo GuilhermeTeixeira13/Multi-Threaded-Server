@@ -1,10 +1,18 @@
 #ifndef MYQUEUE_H_
 #define MYQUEUE_H_
 
-struct node {
-  struct node* next;
+typedef struct qnode
+{
   int *client_socket;
-};
-typedef struct node node_t;
+  struct qnode *next;
+  int prty;
 
+} Qnode, *QnodePtr;
+
+typedef struct Queue
+{
+  QnodePtr top;
+  QnodePtr tail;
+
+} Queuetype, *Queue;
 #endif

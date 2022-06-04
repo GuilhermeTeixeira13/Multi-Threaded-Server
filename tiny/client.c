@@ -21,6 +21,9 @@ Muitas Modificações
 
 int main(int argc, char **argv)
 {
+    double time_spent = 0.0;
+    clock_t begin = clock();
+
     char buffer[BUFSIZ];
     enum CONSTEXPR
     {
@@ -107,12 +110,9 @@ int main(int argc, char **argv)
         Rio_readlineb(&rio, buf, MAXLINE);
 
         // Envio das estatisticas para o canal de standard error
-        if (strstr(buf, "Stat") != NULL)
-            fprintf(stderr, "STATISTIC : %s", buf);
+        // if (strstr(buf, "Stat") != NULL)
+        // fprintf(stderr, "STATISTIC : %s", buf);
     }
-
-    double time_spent = 0.0;
-    clock_t begin = clock();
 
     // Ler o resto da resposta - o corpo de resposta.
     // Vamos ler em blocos caso que seja uma resposta grande.
