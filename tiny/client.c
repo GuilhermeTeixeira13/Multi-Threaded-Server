@@ -111,8 +111,8 @@ int main(int argc, char **argv)
             fprintf(stderr, "STATISTIC : %s", buf);
     }
 
-    // double time_spent = 0.0;
-    // clock_t begin = clock();
+    double time_spent = 0.0;
+    clock_t begin = clock();
 
     // Ler o resto da resposta - o corpo de resposta.
     // Vamos ler em blocos caso que seja uma resposta grande.
@@ -121,12 +121,12 @@ int main(int argc, char **argv)
         if (DEBUG)
             fprintf(stderr, "debug: after a block read\n");
         // commentar a lina seguinte se não quiser ver o output
-        Rio_writen(STDOUT_FILENO, buffer, nbytes);
+        // Rio_writen(STDOUT_FILENO, buffer, nbytes);
     }
 
-    // clock_t end = clock();
-    // time_spent += (double)(end - begin) / CLOCKS_PER_SEC;
-    // printf("Elapsed: %f\n", time_spent);
+    clock_t end = clock();
+    time_spent += (double)(end - begin) / CLOCKS_PER_SEC;
+    printf("Elapsed: %f\n", time_spent);
 
     if (DEBUG)
         fprintf(stderr, "debug: after last read\n");
