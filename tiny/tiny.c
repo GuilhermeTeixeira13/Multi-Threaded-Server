@@ -69,8 +69,8 @@ int main(int argc, char **argv)
 
     int *pclient = malloc(sizeof(int));
     *pclient = connfd;
-    int tipoFicheiro = requestType(connfd);
     printf("pclient->%d", *pclient);
+    int tipoFicheiro = requestType(connfd);
     pthread_mutex_lock(&mutex);
     if (queueCurrentSize <= buffersSize)
     {
@@ -87,10 +87,14 @@ int main(int argc, char **argv)
       }
       else if (strcmp("HPDC", argv[4]) == 0)
       {
-        if (tipoFicheiro == 0) // É dinâmico
+        if (tipoFicheiro == 0)
+        { // É dinâmico
           pEnqueue(q, pclient, 1);
+        }
         else
+        {
           pEnqueue(q, pclient, 2);
+        }
       }
       queueCurrentSize++;
     }
@@ -144,8 +148,8 @@ int requestType(int fd)
   /* Parse URI from GET request */
   is_static = parse_uri(uri, filename, cgiargs); // line:netp:doit:staticcheck
 
-  printf("fechando(%d)", fd);
-  Close(fd);
+  // printf("fechando(%d)", fd);
+  // Close(fd);
 
   // return 0 if dynamic content, 1 if static
   return is_static;
@@ -205,9 +209,6 @@ void *doit(void *p_fd)
     }
     serve_dynamic(fd, filename, cgiargs); // line:netp:doit:servedynamic
   }
-
-  // printf("fechando(%d)", fd);
-  // Close(fd);
 
   return NULL;
 }
@@ -293,7 +294,7 @@ void serve_static(int fd, char *filename, int filesize)
   srcp = Mmap(0, filesize, PROT_READ, MAP_PRIVATE, srcfd, 0); // line:netp:servestatic:mmap
   Close(srcfd);                                               // line:netp:servestatic:close
   Rio_writen(fd, srcp, filesize);                             // line:netp:servestatic:write
-  Munmap(srcp, filesize);                                     // line:netp:servestatic:munmap
+  Munmap(srcp, filesize);                                     // line:netp:servestatic:munmap);
 }
 
 /*
