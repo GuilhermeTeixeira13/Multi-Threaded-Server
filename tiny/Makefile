@@ -12,11 +12,14 @@ LIB = -lpthread
 
 all: tiny adder client hashexample
 
-tiny: tiny.c csapp.o
-	$(CC) $(CFLAGS) -o tiny tiny.c csapp.o $(LIB)
+tiny: tiny.c csapp.o myqueue.o
+	$(CC) $(CFLAGS) -o tiny tiny.c csapp.o myqueue.o $(LIB)
 
 csapp.o:
 	$(CC) $(CFLAGS) -c csapp.c
+
+myqueue.o:
+	$(CC) $(CFLAGS) -c myqueue.c
 
 adder:
 	(cd cgi-bin; make)

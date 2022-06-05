@@ -25,8 +25,6 @@ void *thread_function(void *args);
 int numeroRequestStat = 0;
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t condition_var = PTHREAD_COND_INITIALIZER;
-node_t *head = NULL;
-node_t *tail = NULL;
 int queueCurrentSize = 0;
 int buffersSize = 0;
 long Stat_thread_id = 0;
@@ -51,6 +49,7 @@ int main(int argc, char **argv)
 
   listenfd = Open_listenfd(port);
 
+  // Uma série de threads é criada para dar conta de futuros pedidos
   pthread_t thread_pool[ThreadPoolSIZE];
   for (long i = 0; i < ThreadPoolSIZE; i++)
     pthread_create(&thread_pool[i], NULL, thread_function, (void *)i);
@@ -60,73 +59,42 @@ int main(int argc, char **argv)
     clientlen = sizeof(clientaddr);
     connfd = Accept(listenfd, (SA *)&clientaddr, &clientlen); // line:netp:tiny:accept
 
-    // doit (connfd);		//line:netp:tiny:doit
-    /*pthread_t t;
+    // Deixamos a conection aqui para que um dos threads disponíveis a consiga encontrar
     int *pclient = malloc(sizeof(int));
     *pclient = connfd;
-    pthread_create(&t, NULL, doit, pclient);*/
-    // Close(connfd); // line:netp:tiny:close
 
-    int *pclient = malloc(sizeof(int));
-    *pclient = connfd;
+    // Proteger a fila (Race condition), com um mutex lock
     pthread_mutex_lock(&mutex);
     if (queueCurrentSize <= buffersSize)
     {
       enqueue(pclient);
       queueCurrentSize++;
     }
-    pthread_cond_signal(&condition_var);
+    pthread_cond_signal(&condition_var); // Diz ao thread que está à espera, para começar a trabalhar
     pthread_mutex_unlock(&mutex);
-  }
-}
-
-void enqueue(int *client_socket)
-{
-  node_t *newnode = malloc(sizeof(node_t));
-  newnode->client_socket = client_socket;
-  newnode->next = NULL;
-  if (tail == NULL)
-    head = newnode;
-  else
-    tail->next = newnode;
-  tail = newnode;
-}
-
-int *dequeue()
-{
-  if (head == NULL)
-    return NULL;
-  else
-  {
-    int *result = head->client_socket;
-    node_t *temp = head;
-    head = head->next;
-    if (head == NULL)
-    {
-      tail = NULL;
-    }
-    free(temp);
-    return result;
   }
 }
 
 void *thread_function(void *args)
 {
   Stat_thread_id = (long)args;
-  while (true)
+  while (true) // Threads nunca morrem
   {
     int *pclient;
-    pthread_mutex_lock(&mutex);
 
-    if ((pclient = dequeue()) == NULL) // Se não há mais ninguém na fila, então espera
+    pthread_mutex_lock(&mutex);
+    if ((pclient = dequeue()) == NULL)
     {
+      // Se não há mais ninguém na fila, então espera (ao invés de estar constantemente a criar novos threads)
       pthread_cond_wait(&condition_var, &mutex);
       pclient = dequeue();
       queueCurrentSize--;
     }
     pthread_mutex_unlock(&mutex);
+
     if (pclient != NULL)
     {
+      // Thread tem trabalho a fazer
       doit(pclient);
     }
   }
