@@ -44,6 +44,9 @@ int main(int argc, char **argv)
     struct hostent *hostent;
     struct sockaddr_in sockaddr_in;
 
+    double time_spent = 0.0;
+    clock_t begin = clock();
+
     if (argc > 1)
         hostname = argv[1];
     if (argc > 2)
@@ -110,9 +113,6 @@ int main(int argc, char **argv)
         if (strstr(buf, "Stat") != NULL)
             fprintf(stderr, "STATISTIC : %s", buf);
     }
-
-    double time_spent = 0.0;
-    clock_t begin = clock();
 
     // Ler o resto da resposta - o corpo de resposta.
     // Vamos ler em blocos caso que seja uma resposta grande.
