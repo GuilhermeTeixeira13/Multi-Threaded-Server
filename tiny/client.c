@@ -121,7 +121,7 @@ int main(int argc, char **argv)
         if (DEBUG)
             fprintf(stderr, "debug: after a block read\n");
         // commentar a lina seguinte se não quiser ver o output
-        // Rio_writen(STDOUT_FILENO, buffer, nbytes);
+        Rio_writen(STDOUT_FILENO, buffer, nbytes);
     }
 
     clock_t end = clock();

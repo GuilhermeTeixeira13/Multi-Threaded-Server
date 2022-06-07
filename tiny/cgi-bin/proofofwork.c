@@ -45,7 +45,7 @@ int main(void)
       sha1_process(&md, (unsigned char *)msgStr, (unsigned long)strlen(msgStr));
       sha1_done(&md, tmp);
 
-      int encontrou = 0;
+            int encontrou = 0;
       for (int i = 0; i < dificulty; i++)
       {
         if (0 == tmp[i])
