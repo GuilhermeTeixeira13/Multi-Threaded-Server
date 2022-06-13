@@ -1,4 +1,4 @@
-Part 1: Multi-threaded Server
+# Part 1: Multi-threaded Server
 
 The basic web server provided has a single thread of control. Single-threaded web servers suffer 
 from a fundamental performance problem in that only a single HTTP request can be serviced at a 
@@ -50,10 +50,9 @@ Specifically,
 
 In this project, you are advised to use condition variables.
 
-https://pages.cs.wisc.edu/~remzi/OSTEP/threads-cv.pdf
-https://www.youtube.com/watch?v=0sVGnxg6Z3k
-
-#### Videos that helped us
+#### Online COntent that helped us
 https://www.youtube.com/watch?v=Pg_4Jz8ZIH4&list=RDCMUCwd5VFu4KoJNjkWJZMFJGHQ&index=4
 https://www.youtube.com/watch?v=FMNnusHqjpw&list=RDCMUCwd5VFu4KoJNjkWJZMFJGHQ&start_radio=1&t=5s
 https://www.youtube.com/watch?v=P6Z5K8zmEmc&list=RDCMUCwd5VFu4KoJNjkWJZMFJGHQ&index=3
+https://www.youtube.com/watch?v=0sVGnxg6Z3k
+https://pages.cs.wisc.edu/~remzi/OSTEP/threads-cv.pdf
