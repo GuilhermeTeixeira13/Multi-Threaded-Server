@@ -14,8 +14,8 @@ further, when one thread is blocked (i.e., waiting for disk I/O to finish) the o
 to handle other requests. However, the drawback of the one-thread-per-request approach is that the 
 web server pays the overhead of creating a new thread on every request. 
 
-Therefore, the generally preferred approach for a multi-threaded server is to create a fixed-size pool 
-of worker threads when the web server is first started. With the pool-of-threads approach, each 
+Therefore, the generally preferred approach for a multi-threaded server is to create a **fixed-size pool 
+of worker threads** when the web server is first started. With the pool-of-threads approach, each 
 thread is blocked until there is an http request for it to handle. Therefore, if there are more worker 
 threads than active requests, then some of the threads will be blocked, waiting for new http requests 
 to arrive; if there are more requests than worker threads, then those requests will need to be buffered 
@@ -49,6 +49,8 @@ Specifically,
 - a worker thread must wait if the buffer is empty. 
 
 In this project, you are advised to use condition variables.
+
+**Avoid any busy-waiting (or spin-waiting) instead.**
 
 #### Online Content that helped us
 https://www.youtube.com/watch?v=Pg_4Jz8ZIH4&list=RDCMUCwd5VFu4KoJNjkWJZMFJGHQ&index=4
