@@ -63,18 +63,18 @@ waiting worker threads in your web server.
 The scheduling policy is determined by a command line argument when the web server is started and 
 are as follows: 
 
-- Any Concurrent Policy (ANY): When a worker thread wakes, it can handle any request in 
+- **Any Concurrent Policy (ANY)**: When a worker thread wakes, it can handle any request in 
 the buffer. The only requirement is that all threads are handling requests concurrently. (In 
 other words, you can make ANY=FIFO if you have FIFO working.) 
-- First-in-First-out (FIFO): When a worker thread wakes, it handles the first request 
+- **First-in-First-out (FIFO)**: When a worker thread wakes, it handles the first request 
 (i.e., the oldest request) in the buffer. Note that the http requests will not necessarily finish in 
 FIFO order since multiple threads are running concurrently; the order in which the requests 
 complete will depend upon how the OS schedules the active threads. 
-- Highest Priority to Static Content (HPSC): When a worker thread wakes, it handles 
+- **Highest Priority to Static Content (HPSC)**: When a worker thread wakes, it handles 
 the first request that is static content; if there are no requests for static content, it handles the 
 first request for dynamic content. Note that this algorithm can lead to the starvation of 
 requests for dynamic content. 
-- Highest Priority to Dynamic Content (HPDC): When a worker thread wakes, it 
+- **Highest Priority to Dynamic Content (HPDC)**: When a worker thread wakes, it 
 handles the first request that is dynamic content; if there are no requests for dynamic content, 
 it handles the first request for static content. Note that this algorithm can lead to the starvation 
 of requests for static content. 
