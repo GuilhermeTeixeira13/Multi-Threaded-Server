@@ -95,9 +95,9 @@ The command line arguments to your web server are to be interpreted as follows.
 handles this argument. 
 - threads: the number of worker threads that should be created within the web server. Must 
 be a positive integer. 
-- buffers: the number of request connections that can be accepted at one time. Must be a positive integer. Note that it is not an error for more or less threads to be created than buffers. 
-o Example: we have 5 worker threads and accept a maximum of 25 connections
-o Example: we have 5 worker threads and accept a maximum of 2 connections 
+- buffers: the number of request connections that can be accepted at one time. Must be a positive integer. Note that it is not an error for more or less threads to be created than buffers.   
+Example: we have 5 worker threads and accept a maximum of 25 connections  
+Example: we have 5 worker threads and accept a maximum of 2 connections   
 - schedalg: the scheduling algorithm to be performed. One of ANY, FIFO, HPSC, or HPDC. 
 
 For example, if you run your program as server 5003 8 16 FIFO 
