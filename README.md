@@ -88,7 +88,7 @@ to perform this work, which requires that it read from the network descriptor.
 For this project, you will be implementing both the server and the client. 
 Your web server must be invoked exactly as follows: 
 
-server [portnum] [threads] [buffers] [schedalg] 
+./server [portnum] [threads] [buffers] [schedalg] 
 
 The command line arguments to your web server are to be interpreted as follows. 
 - portnum: the port number that the web server should listen on; the basic web server already 
