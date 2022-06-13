@@ -52,6 +52,38 @@ In this project, you are advised to use condition variables.
 
 **Avoid any busy-waiting (or spin-waiting) instead.**
 
+#Part 2: Scheduling Policies
+
+In this project, you will implement a number of different scheduling policies. Note that when your 
+web server has multiple worker threads running (the number of which is specified on the command 
+line), you will not have any control over which thread is actually scheduled at any given time by the 
+OS. Your role in scheduling is to determine which http request should be handled by each of the 
+waiting worker threads in your web server. 
+
+The scheduling policy is determined by a command line argument when the web server is started and 
+are as follows: 
+
+- Any Concurrent Policy (ANY): When a worker thread wakes, it can handle any request in 
+the buffer. The only requirement is that all threads are handling requests concurrently. (In 
+other words, you can make ANY=FIFO if you have FIFO working.) 
+- First-in-First-out (FIFO): When a worker thread wakes, it handles the first request 
+(i.e., the oldest request) in the buffer. Note that the http requests will not necessarily finish in 
+FIFO order since multiple threads are running concurrently; the order in which the requests 
+complete will depend upon how the OS schedules the active threads. 
+- Highest Priority to Static Content (HPSC): When a worker thread wakes, it handles 
+the first request that is static content; if there are no requests for static content, it handles the 
+first request for dynamic content. Note that this algorithm can lead to the starvation of 
+requests for dynamic content. 
+- Highest Priority to Dynamic Content (HPDC): When a worker thread wakes, it 
+handles the first request that is dynamic content; if there are no requests for dynamic content, 
+it handles the first request for static content. Note that this algorithm can lead to the starvation 
+of requests for static content. 
+
+You will note that the HPSC and SPDC policies require that something be known about each request 
+before the requests can be scheduled. Thus, to support this scheduling policy, you will need to do 
+some initial processing of the request outside of the worker threads; you will want the master thread 
+to perform this work, which requires that it read from the network descriptor.
+
 ## Online Content that helped us
 https://www.youtube.com/watch?v=Pg_4Jz8ZIH4&list=RDCMUCwd5VFu4KoJNjkWJZMFJGHQ&index=4
 https://www.youtube.com/watch?v=FMNnusHqjpw&list=RDCMUCwd5VFu4KoJNjkWJZMFJGHQ&start_radio=1&t=5s
