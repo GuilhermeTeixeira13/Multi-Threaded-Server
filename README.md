@@ -84,6 +84,27 @@ before the requests can be scheduled. Thus, to support this scheduling policy, y
 some initial processing of the request outside of the worker threads; you will want the master thread 
 to perform this work, which requires that it read from the network descriptor.
 
+# Program Specifications
+For this project, you will be implementing both the server and the client. 
+Your web server must be invoked exactly as follows: 
+
+server [portnum] [threads] [buffers] [schedalg] 
+
+The command line arguments to your web server are to be interpreted as follows. 
+- portnum: the port number that the web server should listen on; the basic web server already 
+handles this argument. 
+- threads: the number of worker threads that should be created within the web server. Must 
+be a positive integer. 
+- buffers: the number of request connections that can be accepted at one time. Must be a 
+positive integer. Note that it is not an error for more or less threads to be created than buffers. 
+o Exemple: we have 5 worker threads and accept a maximum of 25 connections
+o Exemple: we have 5 worker threads and accept a maximum of 2 connections 
+• schedalg: the scheduling algorithm to be performed. One of ANY, FIFO, HPSC, or HPDC. 
+For example, if you run your program as server 5003 8 16 FIFO 
+then your web server will listen to port 5003, create 8 worker threads for handling http requests, 
+allocate 16 buffers for connections that are currently in progress (or waiting), and use FIFO 
+scheduling for arriving requests. 
+
 ## Online Content that helped us
 https://www.youtube.com/watch?v=Pg_4Jz8ZIH4&list=RDCMUCwd5VFu4KoJNjkWJZMFJGHQ&index=4
 https://www.youtube.com/watch?v=FMNnusHqjpw&list=RDCMUCwd5VFu4KoJNjkWJZMFJGHQ&start_radio=1&t=5s
