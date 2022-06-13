@@ -52,7 +52,7 @@ In this project, you are advised to use condition variables.
 
 **Avoid any busy-waiting (or spin-waiting) instead.**
 
-#### Online Content that helped us
+## Online Content that helped us
 https://www.youtube.com/watch?v=Pg_4Jz8ZIH4&list=RDCMUCwd5VFu4KoJNjkWJZMFJGHQ&index=4
 https://www.youtube.com/watch?v=FMNnusHqjpw&list=RDCMUCwd5VFu4KoJNjkWJZMFJGHQ&start_radio=1&t=5s
 https://www.youtube.com/watch?v=P6Z5K8zmEmc&list=RDCMUCwd5VFu4KoJNjkWJZMFJGHQ&index=3
