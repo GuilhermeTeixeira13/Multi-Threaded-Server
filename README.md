@@ -33,24 +33,24 @@ manage posix threads with pthread_create and pthread_detach.
 
 Each worker thread is able to handle both static and dynamic requests. 
 
-• A worker thread wakes when there is an http request in the queue; when there are multiple http 
+- A worker thread wakes when there is an http request in the queue; when there are multiple http 
 requests available, which request is handled depends upon the scheduling policy, described 
 below. 
-• Once the worker thread wakes, it performs the read on the network descriptor, obtains the 
+- Once the worker thread wakes, it performs the read on the network descriptor, obtains the 
 specified content (by either reading the static file or executing the CGI process), and then returns 
 the content to the client by writing to the descriptor. 
-• The worker thread then waits for another http request. 
+- The worker thread then waits for another http request. 
 
 Note that the master thread and the worker threads are in a producer-consumer relationship and 
 require that their accesses to the shared buffer be synchronized. 
 
 Specifically, 
-• the master thread must block and wait if the buffer is full; 
-• a worker thread must wait if the buffer is empty. 
+- the master thread must block and wait if the buffer is full; 
+- a worker thread must wait if the buffer is empty. 
 
 In this project, you are advised to use condition variables.
 
-#### Online COntent that helped us
+#### Online Content that helped us
 https://www.youtube.com/watch?v=Pg_4Jz8ZIH4&list=RDCMUCwd5VFu4KoJNjkWJZMFJGHQ&index=4
 https://www.youtube.com/watch?v=FMNnusHqjpw&list=RDCMUCwd5VFu4KoJNjkWJZMFJGHQ&start_radio=1&t=5s
 https://www.youtube.com/watch?v=P6Z5K8zmEmc&list=RDCMUCwd5VFu4KoJNjkWJZMFJGHQ&index=3
