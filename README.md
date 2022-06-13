@@ -1,10 +1,12 @@
 Part 1: Multi-threaded Server
+
 The basic web server provided has a single thread of control. Single-threaded web servers suffer 
 from a fundamental performance problem in that only a single HTTP request can be serviced at a 
 time. Thus, every other client that is accessing this web server must wait until the current http request 
 has finished; this is especially a problem if the current http request is a long-running CGI program 
 (such as the proof of work program) or is resident only on disk (i.e., is not in memory). Thus, the 
 most important extension that you will be adding is to make the basic web server multi-threaded. 
+
 The simplest approach to building a multi-threaded server is to spawn a new thread for every new 
 http request. The OS will then schedule these threads according to its own policy. The advantage of 
 creating these threads is that now short requests will not need to wait for a long request to complete; 
