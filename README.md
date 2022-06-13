@@ -52,7 +52,7 @@ In this project, you are advised to use condition variables.
 
 **Avoid any busy-waiting (or spin-waiting) instead.**
 
-#Part 2: Scheduling Policies
+# Part 2: Scheduling Policies
 
 In this project, you will implement a number of different scheduling policies. Note that when your 
 web server has multiple worker threads running (the number of which is specified on the command 
